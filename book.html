@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -10,10 +9,8 @@
 <link rel="stylesheet" href="style.css">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin">
-
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
 </head>
 
 <body>
@@ -23,7 +20,6 @@
     <div class="orb orb2"></div>
     <div class="orb orb3"></div>
 </div>
-
 
 <header class="navbar">
 
@@ -51,15 +47,15 @@
 
 <div class="reveal">
 
-<span class="section-label">YOUR MASTERPIECE</span>
+<span class="section-label">YOUR CREATION</span>
 
 <h1>
     Welcome to
-    <span>Your Book.</span>
+    <span>My Book.</span>
 </h1>
 
 <p>
-    Everything you've created in the Studio comes together here.
+    Everything you've created in BookCraft comes together here.
 </p>
 
 </div>
@@ -67,11 +63,11 @@
 </section>
 
 
-<section class="my-book section">
+<section class="my-book-section section">
 
-<div class="final-book-display reveal">
+<div class="book-showcase reveal">
 
-<div class="final-cover">
+<div class="final-cover generated-cover magic" id="finalCover">
 
 <div>✦</div>
 
@@ -90,78 +86,75 @@ Your Name
 </div>
 
 
-<div class="final-book-info">
+<div class="book-details">
 
-<span class="section-label">THE STORY</span>
+<span class="section-label">YOUR MASTERPIECE</span>
 
-<h2 id="storyHeading">
+<h2 id="bookHeading">
 Your Story
 </h2>
 
-<p id="storyText">
-Your writing will appear here once you start writing in the Book Studio.
+<p id="bookDescription">
+Your story will appear here once you start creating it
+inside the Book Studio.
 </p>
 
-
-<div class="book-facts">
+<div class="book-stats">
 
 <div>
-
-<span>CHARACTER</span>
-
-<strong id="bookCharacter">
-Not created yet
-</strong>
-
+<strong id="finalWords">0</strong>
+<span>Words</span>
 </div>
 
 <div>
-
-<span>WORLD</span>
-
-<strong id="bookWorld">
-Not created yet
-</strong>
-
+<strong id="finalCharacters">0</strong>
+<span>Characters</span>
 </div>
 
 <div>
-
-<span>WORDS</span>
-
-<strong id="bookWords">
-0
-</strong>
-
+<strong id="finalProgress">0%</strong>
+<span>Complete</span>
 </div>
 
 </div>
 
+<div class="book-actions">
 
-<a href="studio.html"
-class="btn btn-primary">
-Continue Creating →
+<a href="studio.html" class="btn btn-primary">
+✍️ Continue Writing
 </a>
 
+<button class="btn btn-secondary" id="refreshBook">
+↻ Refresh Preview
+</button>
+
+</div>
+
 </div>
 
 </div>
 
 
-<div class="chapter-preview reveal">
+<div class="story-preview reveal">
 
-<div class="chapter-heading">
+<div class="preview-heading">
 
-<span>CHAPTER ONE</span>
+<div>
+<span class="section-label">MANUSCRIPT</span>
+<h2>Your Story</h2>
+</div>
 
-<h2>The Beginning</h2>
+<span class="chapter-badge">CHAPTER 01</span>
 
 </div>
 
-<div id="chapterText">
+<div class="manuscript">
 
-<p>
-Your first chapter is waiting to be written.
+<p id="manuscriptText">
+Your manuscript is waiting.
+
+Head over to the <strong>Book Studio</strong>,
+write your story, and it will appear here automatically.
 </p>
 
 </div>
@@ -169,25 +162,19 @@ Your first chapter is waiting to be written.
 </div>
 
 
-<div class="author-message reveal">
+<div class="book-finish reveal">
 
-<div class="message-icon">
-✨
-</div>
+<div class="finish-icon">🚀</div>
 
-<h2>
-You are an author.
-</h2>
+<h2>Ready to become an author?</h2>
 
 <p>
-You imagined something that didn't exist,
-gave it characters and a world,
-and turned it into words.
-That's how every author begins.
+There is only one thing left to do:
+keep creating.
 </p>
 
-<a href="studio.html" class="btn btn-secondary">
-Keep Writing
+<a href="studio.html" class="btn btn-primary">
+Return to Book Studio →
 </a>
 
 </div>
@@ -200,15 +187,12 @@ Keep Writing
 <footer>
 
 <div class="footer-brand">📖 BookCraft</div>
-
-<p>Every great book starts with a first idea.</p>
-
-<span>© 2026 BookCraft</span>
+<p>From a tiny idea to a finished masterpiece.</p>
+<span>© 2026 BookCraft • Made for future authors ✨</span>
 
 </footer>
-
 
 <script src="script.js"></script>
 
 </body>
-</html>
+    </html>
