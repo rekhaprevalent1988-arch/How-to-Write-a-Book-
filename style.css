@@ -288,14 +288,14 @@ button {
 .reveal {
     opacity: 0;
     transform: translateY(30px);
-    transition: opacity .8s ease, transform .8s ease;
+    transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 .reveal.visible {
     opacity: 1;
     transform: translateY(0);
+    visibility: visible;
 }
-
 
 /* =========================================================
    HERO
