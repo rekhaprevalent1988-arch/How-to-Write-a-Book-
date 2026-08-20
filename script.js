@@ -1,6 +1,8 @@
 /* =========================================================
-   BOOKCRAFT — MAIN JAVASCRIPT
+   BOOKCRAFT — MASTER JAVASCRIPT
    ========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
 
 
 /* =========================================================
@@ -12,15 +14,11 @@ const navMenu = document.getElementById("navMenu");
 
 if (menuBtn && navMenu) {
 
-    menuBtn.addEventListener("click", () => {
-
-        navMenu.classList.toggle("open");
+    menuBtn.addEventListener("click", function () {
+        navMenu.classList.toggle("active");
 
         menuBtn.textContent =
-            navMenu.classList.contains("open")
-                ? "✕"
-                : "☰";
-
+            navMenu.classList.contains("active") ? "✕" : "☰";
     });
 
 }
@@ -30,21 +28,18 @@ if (menuBtn && navMenu) {
    SCROLL REVEAL
    ========================================================= */
 
-const revealElements =
-    document.querySelectorAll(".reveal");
+const revealElements = document.querySelectorAll(".reveal");
 
-const revealObserver =
-    new IntersectionObserver(
-        entries => {
+if ("IntersectionObserver" in window) {
 
-            entries.forEach(entry => {
+    const observer = new IntersectionObserver(
+        function (entries) {
+
+            entries.forEach(function (entry) {
 
                 if (entry.isIntersecting) {
-
-                    entry.target.classList.add("show");
-
-                    revealObserver.unobserve(entry.target);
-
+                    entry.target.classList.add("visible");
+                    observer.unobserve(entry.target);
                 }
 
             });
@@ -55,12 +50,17 @@ const revealObserver =
         }
     );
 
+    revealElements.forEach(function (element) {
+        observer.observe(element);
+    });
 
-revealElements.forEach(element => {
+} else {
 
-    revealObserver.observe(element);
+    revealElements.forEach(function (element) {
+        element.classList.add("visible");
+    });
 
-});
+}
 
 
 /* =========================================================
@@ -68,30 +68,75 @@ revealElements.forEach(element => {
    ========================================================= */
 
 function saveData(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
 
-    localStorage.setItem(
-        "bookcraft_" + key,
-        JSON.stringify(value)
-    );
+function loadData(key, fallback = null) {
+
+    try {
+
+        const data = localStorage.getItem(key);
+
+        return data ? JSON.parse(data) : fallback;
+
+    } catch (error) {
+
+        return fallback;
+
+    }
 
 }
 
 
-function getData(key, fallback = "") {
+/* =========================================================
+   BOOK PROGRESS
+   ========================================================= */
 
-    const value =
-        localStorage.getItem("bookcraft_" + key);
+function updateBookProgress() {
 
-    if (!value) return fallback;
+    let completed = 0;
 
-    try {
+    const idea = loadData("bookcraftIdea");
+    const character = loadData("bookcraftCharacter");
+    const world = loadData("bookcraftWorld");
+    const plot = loadData("bookcraftPlot");
+    const writing = loadData("bookcraftWriting");
+    const editing = loadData("bookcraftEditing");
+    const cover = loadData("bookcraftCover");
+    const quiz = loadData("bookcraftQuiz");
 
-        return JSON.parse(value);
+    if (idea) completed++;
+    if (character) completed++;
+    if (world) completed++;
+    if (plot) completed++;
+    if (writing && writing.text && writing.text.trim()) completed++;
+    if (editing && editing > 0) completed++;
+    if (cover) completed++;
+    if (quiz && quiz.completed) completed++;
 
-    } catch {
+    const percentage = Math.round((completed / 8) * 100);
 
-        return value;
+    const progressText = document.getElementById("progressText");
+    const progressNumber = document.getElementById("progressNumber");
+    const progressCircle = document.querySelector(".progress-circle");
 
+    if (progressText) {
+        progressText.textContent = percentage + "% Complete";
+    }
+
+    if (progressNumber) {
+        progressNumber.textContent = percentage + "%";
+    }
+
+    if (progressCircle) {
+        progressCircle.style.background =
+            `conic-gradient(#6c63ff ${percentage * 3.6}deg, #ededf5 0deg)`;
+    }
+
+    const finalProgress = document.getElementById("finalProgress");
+
+    if (finalProgress) {
+        finalProgress.textContent = percentage + "%";
     }
 
 }
@@ -101,153 +146,88 @@ function getData(key, fallback = "") {
    IDEA GENERATOR
    ========================================================= */
 
-const generateIdea =
-    document.getElementById("generateIdea");
-
-
-const ideaTitles = [
-
-    "The Door That Wasn't There",
-
-    "The Last Lightkeeper",
-
-    "The Boy Who Remembered Tomorrow",
-
-    "The Library Under the City",
-
-    "Five Minutes Before Midnight",
-
-    "The Map of Impossible Places",
-
-    "The Clock That Stopped Time",
-
-    "The Secret Inside Room 27",
-
-    "The Girl Who Found a Star",
-
-    "The Train to Nowhere"
-
-];
-
-
-const ideaStories = [
-
-    "A young student discovers a mysterious door in a familiar place. Every time it opens, the world on the other side has changed.",
-
-    "A lonely lighthouse keeper notices that the light predicts events before they happen.",
-
-    "A teenager wakes up remembering an entire day that hasn't happened yet.",
-
-    "A hidden library contains books that describe events from the future.",
-
-    "At exactly midnight, every clock in the city stops except one.",
-
-    "A strange map leads its owner to places that should not exist.",
-
-    "An ordinary clock can freeze time, but only for five minutes.",
-
-    "Room 27 appears on no school map, yet someone keeps leaving messages inside it.",
-
-    "A girl finds a fallen star that can answer exactly three questions.",
-
-    "A mysterious train arrives at a station that has never existed."
-];
-
-
-const genres = [
-
-    "Fantasy",
-    "Mystery",
-    "Adventure",
-    "Science Fiction",
-    "Thriller",
-    "Magical Realism"
-];
-
-
-const moods = [
-
-    "Mysterious",
-    "Exciting",
-    "Magical",
-    "Suspenseful",
-    "Emotional",
-    "Adventurous"
-];
-
+const generateIdea = document.getElementById("generateIdea");
 
 if (generateIdea) {
 
-    generateIdea.addEventListener("click", () => {
+    const ideas = [
 
-        const index =
-            Math.floor(
-                Math.random() *
-                ideaTitles.length
-            );
+        {
+            title: "The Door That Appeared at Midnight",
+            text: "Every night, a mysterious door appears in an ordinary bedroom. One night, someone decides to open it.",
+            genre: "Mystery",
+            mood: "Mysterious"
+        },
 
-        const title =
-            document.getElementById("ideaTitle");
+        {
+            title: "The Last Student on Mars",
+            text: "A school field trip to Mars goes wrong, leaving one student to solve a problem no teacher prepared for.",
+            genre: "Sci-Fi",
+            mood: "Adventurous"
+        },
 
-        const text =
-            document.getElementById("ideaText");
+        {
+            title: "The Library of Lost Memories",
+            text: "A child discovers a hidden library where every book contains a memory someone has forgotten.",
+            genre: "Fantasy",
+            mood: "Magical"
+        },
 
-        const genre =
-            document.getElementById("ideaGenre");
+        {
+            title: "The Robot Who Wanted to Dream",
+            text: "A curious robot begins experiencing strange dreams and searches for the reason behind them.",
+            genre: "Sci-Fi",
+            mood: "Emotional"
+        },
 
-        const mood =
-            document.getElementById("ideaMood");
+        {
+            title: "Seven Minutes Before Tomorrow",
+            text: "A mysterious clock gives its owner exactly seven minutes to change one event from the future.",
+            genre: "Adventure",
+            mood: "Suspenseful"
+        },
 
+        {
+            title: "The Village Above the Clouds",
+            text: "A hidden village floats above the clouds, but it is slowly falling toward the world below.",
+            genre: "Fantasy",
+            mood: "Epic"
+        },
 
-        if (title) {
+        {
+            title: "The Pencil That Changed Reality",
+            text: "Anything drawn with a strange pencil becomes real—but every drawing has an unexpected consequence.",
+            genre: "Fantasy",
+            mood: "Fun"
+        },
 
-            title.textContent =
-                ideaTitles[index];
-
+        {
+            title: "The Secret Under Classroom 6B",
+            text: "Students discover a locked room beneath their classroom that has not appeared on any school map.",
+            genre: "Mystery",
+            mood: "Suspenseful"
         }
 
-        if (text) {
+    ];
 
-            text.textContent =
-                ideaStories[index];
+    generateIdea.addEventListener("click", function () {
 
-        }
+        const random =
+            ideas[Math.floor(Math.random() * ideas.length)];
 
-        if (genre) {
+        const title = document.getElementById("ideaTitle");
+        const text = document.getElementById("ideaText");
+        const genre = document.getElementById("ideaGenre");
+        const mood = document.getElementById("ideaMood");
 
-            genre.textContent =
-                genres[
-                    Math.floor(
-                        Math.random() *
-                        genres.length
-                    )
-                ];
+        if (title) title.textContent = random.title;
+        if (text) text.textContent = random.text;
+        if (genre) genre.textContent = random.genre;
+        if (mood) mood.textContent = random.mood;
 
-        }
+        saveData("bookcraftIdea", random);
 
-        if (mood) {
-
-            mood.textContent =
-                moods[
-                    Math.floor(
-                        Math.random() *
-                        moods.length
-                    )
-                ];
-
-        }
-
-
-        saveData(
-            "idea",
-            {
-                title: ideaTitles[index],
-                story: ideaStories[index]
-            }
-        );
-
-
-        updateProgress();
+        updateBookProgress();
 
     });
 
@@ -255,93 +235,73 @@ if (generateIdea) {
 
 
 /* =========================================================
-   CHARACTER BUILDER
+   CHARACTER CREATOR
    ========================================================= */
 
 const saveCharacter =
     document.getElementById("saveCharacter");
 
-
 if (saveCharacter) {
 
-    const savedCharacter =
-        getData("character", null);
+    saveCharacter.addEventListener("click", function () {
 
+        const name =
+            document.getElementById("charName").value.trim();
 
-    if (savedCharacter) {
+        const role =
+            document.getElementById("charRole").value;
 
-        displayCharacter(savedCharacter);
+        const personality =
+            document.getElementById("charPersonality").value.trim();
 
-    }
+        const goal =
+            document.getElementById("charGoal").value.trim();
 
+        const secret =
+            document.getElementById("charSecret").value.trim();
 
-    saveCharacter.addEventListener("click", () => {
+        if (!name) {
+
+            alert("Give your character a name first!");
+
+            document.getElementById("charName").focus();
+
+            return;
+
+        }
 
         const character = {
-
-            name:
-                document.getElementById("charName").value
-                || "Unnamed Character",
-
-            role:
-                document.getElementById("charRole").value,
-
-            personality:
-                document.getElementById("charPersonality").value
-                || "Mysterious",
-
-            goal:
-                document.getElementById("charGoal").value
-                || "Find their purpose",
-
-            secret:
-                document.getElementById("charSecret").value
-                || "They have a secret..."
-
+            name,
+            role,
+            personality,
+            goal,
+            secret
         };
 
+        saveData("bookcraftCharacter", character);
 
-        saveData("character", character);
+        document.getElementById("createdRole").textContent =
+            role.toUpperCase();
 
-        displayCharacter(character);
+        document.getElementById("createdName").textContent =
+            name;
 
-        updateProgress();
+        document.getElementById("createdPersonality").textContent =
+            personality || "A mysterious personality.";
+
+        document.getElementById("createdGoal").textContent =
+            goal || "Unknown";
+
+        document.getElementById("createdSecret").textContent =
+            secret || "Still a secret...";
+
+        document
+            .getElementById("characterResult")
+            .classList.remove("hidden");
+
+        updateBookProgress();
 
     });
-
-}
-
-
-function displayCharacter(character) {
-
-    const result =
-        document.getElementById("characterResult");
-
-    if (!result) return;
-
-
-    document.getElementById("createdRole")
-        .textContent =
-        character.role.toUpperCase();
-
-    document.getElementById("createdName")
-        .textContent =
-        character.name;
-
-    document.getElementById("createdPersonality")
-        .textContent =
-        character.personality;
-
-    document.getElementById("createdGoal")
-        .textContent =
-        character.goal;
-
-    document.getElementById("createdSecret")
-        .textContent =
-        character.secret;
-
-
-    result.classList.remove("hidden");
 
 }
 
@@ -353,146 +313,97 @@ function displayCharacter(character) {
 const saveWorld =
     document.getElementById("saveWorld");
 
-
 if (saveWorld) {
 
-    const savedWorld =
-        getData("world", null);
-
-
-    if (savedWorld) {
-
-        displayWorld(savedWorld);
-
-    }
-
-
-    saveWorld.addEventListener("click", () => {
+    saveWorld.addEventListener("click", function () {
 
         const world = {
 
             place:
-                document.getElementById("worldPlace").value
-                || "An unknown place",
+                document.getElementById("worldPlace").value.trim(),
 
             time:
-                document.getElementById("worldTime").value
-                || "An unknown time",
+                document.getElementById("worldTime").value.trim(),
 
             mood:
                 document.getElementById("worldMood").value,
 
             rule:
-                document.getElementById("worldRule").value
-                || "The world has a secret."
+                document.getElementById("worldRule").value.trim()
 
         };
 
+        if (!world.place) {
 
-        saveData("world", world);
+            alert("Give your story world a place!");
 
-        displayWorld(world);
+            return;
 
-        updateProgress();
+        }
+
+        saveData("bookcraftWorld", world);
+
+        const result =
+            document.getElementById("worldResult");
+
+        result.innerHTML = `
+            <div>
+                <strong>🌎 ${escapeHTML(world.place)}</strong>
+                <p>
+                    ${escapeHTML(world.time || "An unknown time")}
+                    • ${escapeHTML(world.mood)}
+                </p>
+                <p>
+                    <strong>Special Rule:</strong>
+                    ${escapeHTML(world.rule || "Your world is still mysterious.")}
+                </p>
+            </div>
+        `;
+
+        result.classList.remove("hidden");
+
+        updateBookProgress();
 
     });
 
 }
 
 
-function displayWorld(world) {
-
-    const result =
-        document.getElementById("worldResult");
-
-    if (!result) return;
-
-
-    result.innerHTML = `
-
-        <strong>🌎 ${escapeHTML(world.place)}</strong>
-
-        <p>
-            <b>Time:</b>
-            ${escapeHTML(world.time)}
-            <br>
-
-            <b>Atmosphere:</b>
-            ${escapeHTML(world.mood)}
-            <br>
-
-            <b>Special Rule:</b>
-            ${escapeHTML(world.rule)}
-        </p>
-
-    `;
-
-
-    result.classList.remove("hidden");
-
-}
-
-
 /* =========================================================
-   PLOT
+   PLOT PLANNER
    ========================================================= */
 
 const savePlot =
     document.getElementById("savePlot");
 
-
 if (savePlot) {
 
-    const savedPlot =
-        getData("plot", null);
-
-
-    if (savedPlot) {
-
-        Object.keys(savedPlot).forEach(key => {
-
-            const field =
-                document.getElementById(key);
-
-            if (field) {
-
-                field.value =
-                    savedPlot[key];
-
-            }
-
-        });
-
-    }
-
-
-    savePlot.addEventListener("click", () => {
+    savePlot.addEventListener("click", function () {
 
         const plot = {
 
-            plotBeginning:
+            beginning:
                 document.getElementById("plotBeginning").value,
 
-            plotProblem:
+            problem:
                 document.getElementById("plotProblem").value,
 
-            plotRising:
+            rising:
                 document.getElementById("plotRising").value,
 
-            plotClimax:
+            climax:
                 document.getElementById("plotClimax").value,
 
-            plotEnding:
+            ending:
                 document.getElementById("plotEnding").value
 
         };
 
+        saveData("bookcraftPlot", plot);
 
-        saveData("plot", plot);
+        alert("Plot saved! 🗺️");
 
-        updateProgress();
-
-        showToast("Story plan saved!");
+        updateBookProgress();
 
     });
 
@@ -509,88 +420,24 @@ const writingArea =
 const bookTitle =
     document.getElementById("bookTitle");
 
-
-if (writingArea) {
-
-    const savedWriting =
-        getData("writing", "");
-
-    writingArea.value =
-        savedWriting;
-
-
-    updateWritingStats();
-
-
-    writingArea.addEventListener(
-        "input",
-        () => {
-
-            saveData(
-                "writing",
-                writingArea.value
-            );
-
-            updateWritingStats();
-
-            updateProgress();
-
-        }
-    );
-
-}
-
-
-if (bookTitle) {
-
-    bookTitle.value =
-        getData("bookTitle", "");
-
-
-    bookTitle.addEventListener(
-        "input",
-        () => {
-
-            saveData(
-                "bookTitle",
-                bookTitle.value
-            );
-
-            updateProgress();
-
-        }
-    );
-
-}
-
-
 function updateWritingStats() {
 
     if (!writingArea) return;
 
-
-    const text =
-        writingArea.value.trim();
-
+    const text = writingArea.value;
 
     const words =
-        text
-            ? text.split(/\s+/).length
-            : 0;
-
+        text.trim() === ""
+            ? 0
+            : text.trim().split(/\s+/).length;
 
     const characters =
-        writingArea.value.length;
-
+        text.length;
 
     const reading =
-        words
-            ? Math.max(
-                1,
-                Math.ceil(words / 200)
-            )
-            : 0;
-
+        words === 0
+            ? 0
+            : Math.max(1, Math.ceil(words / 200));
 
     const wordCount =
         document.getElementById("wordCount");
@@ -601,43 +448,73 @@ function updateWritingStats() {
     const readingTime =
         document.getElementById("readingTime");
 
-
-    if (wordCount)
+    if (wordCount) {
         wordCount.textContent = words;
+    }
 
-    if (characterCount)
+    if (characterCount) {
         characterCount.textContent = characters;
+    }
 
-    if (readingTime)
+    if (readingTime) {
         readingTime.textContent =
             reading + " min";
+    }
+
+    saveData("bookcraftWriting", {
+        title: bookTitle ? bookTitle.value : "",
+        text
+    });
+
+    updateBookProgress();
+
+}
+
+if (writingArea) {
+
+    writingArea.addEventListener(
+        "input",
+        updateWritingStats
+    );
+
+}
+
+if (bookTitle) {
+
+    bookTitle.addEventListener(
+        "input",
+        updateWritingStats
+    );
 
 }
 
 
-/* CLEAR WRITING */
+/* =========================================================
+   CLEAR WRITING
+   ========================================================= */
 
 const clearWriting =
     document.getElementById("clearWriting");
 
-
 if (clearWriting) {
 
-    clearWriting.addEventListener("click", () => {
+    clearWriting.addEventListener("click", function () {
+
+        if (!writingArea) return;
 
         if (
             confirm(
-                "Clear your writing?"
+                "Clear your entire manuscript?"
             )
         ) {
 
             writingArea.value = "";
 
-            saveData("writing", "");
+            if (bookTitle) {
+                bookTitle.value = "";
+            }
 
             updateWritingStats();
-
-            updateProgress();
 
         }
 
@@ -653,104 +530,58 @@ if (clearWriting) {
 const editChecks =
     document.querySelectorAll(".edit-check");
 
+function updateEditing() {
 
-if (editChecks.length) {
+    if (!editChecks.length) return;
 
-    const saved =
-        getData(
-            "editing",
-            []
-        );
+    let checked = 0;
 
+    editChecks.forEach(function (check) {
 
-    editChecks.forEach(
-        (checkbox, index) => {
-
-            checkbox.checked =
-                saved[index] || false;
-
-
-            checkbox.addEventListener(
-                "change",
-                () => {
-
-                    const states =
-                        [...editChecks]
-                            .map(
-                                item =>
-                                    item.checked
-                            );
-
-
-                    saveData(
-                        "editing",
-                        states
-                    );
-
-
-                    updateEditingProgress();
-
-                    updateProgress();
-
-                }
-            );
-
+        if (check.checked) {
+            checked++;
         }
-    );
 
-
-    updateEditingProgress();
-
-}
-
-
-function updateEditingProgress() {
-
-    const checks =
-        document.querySelectorAll(
-            ".edit-check"
-        );
-
-
-    if (!checks.length) return;
-
-
-    const complete =
-        [...checks]
-            .filter(
-                checkbox =>
-                    checkbox.checked
-            )
-            .length;
-
+    });
 
     const percentage =
         Math.round(
-            (complete / checks.length) *
-            100
+            (checked / editChecks.length) * 100
         );
 
+    const editPercentage =
+        document.getElementById("editPercentage");
 
-    const progress =
-        document.getElementById(
-            "editProgress"
-        );
+    const editProgress =
+        document.getElementById("editProgress");
 
-    const label =
-        document.getElementById(
-            "editPercentage"
-        );
-
-
-    if (progress)
-        progress.style.width =
+    if (editPercentage) {
+        editPercentage.textContent =
             percentage + "%";
+    }
 
-    if (label)
-        label.textContent =
+    if (editProgress) {
+        editProgress.style.width =
             percentage + "%";
+    }
+
+    saveData(
+        "bookcraftEditing",
+        percentage
+    );
+
+    updateBookProgress();
 
 }
+
+editChecks.forEach(function (check) {
+
+    check.addEventListener(
+        "change",
+        updateEditing
+    );
+
+});
 
 
 /* =========================================================
@@ -760,196 +591,193 @@ function updateEditingProgress() {
 const updateCover =
     document.getElementById("updateCover");
 
-
 if (updateCover) {
 
-    const savedCover =
-        getData("cover", null);
+    updateCover.addEventListener("click", function () {
 
+        const title =
+            document.getElementById("coverTitle").value.trim()
+            || "YOUR BOOK";
 
-    if (savedCover) {
+        const author =
+            document.getElementById("coverAuthor").value.trim()
+            || "Your Name";
 
-        document.getElementById("coverTitle")
-            .value =
-            savedCover.title;
+        const style =
+            document.getElementById("coverStyle").value;
 
-        document.getElementById("coverAuthor")
-            .value =
-            savedCover.author;
+        const cover =
+            document.getElementById("coverPreview");
 
-        document.getElementById("coverStyle")
-            .value =
-            savedCover.style;
+        document.getElementById("previewTitle")
+            .textContent = title;
 
-        renderCover(savedCover);
+        document.getElementById("previewAuthor")
+            .textContent = author;
 
-    }
+        cover.className =
+            "generated-cover " + style;
 
+        saveData("bookcraftCover", {
+            title,
+            author,
+            style
+        });
 
-    updateCover.addEventListener(
-        "click",
-        () => {
+        updateBookProgress();
 
-            const cover = {
-
-                title:
-                    document.getElementById("coverTitle").value
-                    || "YOUR BOOK",
-
-                author:
-                    document.getElementById("coverAuthor").value
-                    || "Your Name",
-
-                style:
-                    document.getElementById("coverStyle").value
-
-            };
-
-
-            saveData(
-                "cover",
-                cover
-            );
-
-            renderCover(cover);
-
-            updateProgress();
-
-        }
-    );
-
-}
-
-
-function renderCover(cover) {
-
-    const preview =
-        document.getElementById(
-            "coverPreview"
-        );
-
-
-    if (!preview) return;
-
-
-    preview.className =
-        "generated-cover " +
-        cover.style;
-
-
-    document.getElementById(
-        "previewTitle"
-    ).textContent =
-        cover.title;
-
-
-    document.getElementById(
-        "previewAuthor"
-    ).textContent =
-        cover.author;
+    });
 
 }
 
 
 /* =========================================================
-   PROGRESS
+   LOAD SAVED STUDIO DATA
    ========================================================= */
 
-function updateProgress() {
+function loadStudioData() {
 
-    let completed = 0;
+    const character =
+        loadData("bookcraftCharacter");
 
-    const total = 8;
+    if (character && document.getElementById("charName")) {
+
+        document.getElementById("charName").value =
+            character.name || "";
+
+        document.getElementById("charRole").value =
+            character.role || "Hero";
+
+        document.getElementById("charPersonality").value =
+            character.personality || "";
+
+        document.getElementById("charGoal").value =
+            character.goal || "";
+
+        document.getElementById("charSecret").value =
+            character.secret || "";
+
+    }
 
 
-    if (getData("idea", null))
-        completed++;
+    const world =
+        loadData("bookcraftWorld");
 
-    if (getData("character", null))
-        completed++;
+    if (world && document.getElementById("worldPlace")) {
 
-    if (getData("world", null))
-        completed++;
+        document.getElementById("worldPlace").value =
+            world.place || "";
 
-    if (getData("plot", null))
-        completed++;
+        document.getElementById("worldTime").value =
+            world.time || "";
 
-    if (
-        getData("writing", "")
-            .trim()
-            .length > 20
-    )
-        completed++;
+        document.getElementById("worldMood").value =
+            world.mood || "Mysterious";
+
+        document.getElementById("worldRule").value =
+            world.rule || "";
+
+    }
+
+
+    const plot =
+        loadData("bookcraftPlot");
+
+    if (plot && document.getElementById("plotBeginning")) {
+
+        document.getElementById("plotBeginning").value =
+            plot.beginning || "";
+
+        document.getElementById("plotProblem").value =
+            plot.problem || "";
+
+        document.getElementById("plotRising").value =
+            plot.rising || "";
+
+        document.getElementById("plotClimax").value =
+            plot.climax || "";
+
+        document.getElementById("plotEnding").value =
+            plot.ending || "";
+
+    }
+
+
+    const writing =
+        loadData("bookcraftWriting");
+
+    if (writing && document.getElementById("writingArea")) {
+
+        document.getElementById("writingArea").value =
+            writing.text || "";
+
+        if (document.getElementById("bookTitle")) {
+
+            document.getElementById("bookTitle").value =
+                writing.title || "";
+
+        }
+
+        updateWritingStats();
+
+    }
+
+
+    const cover =
+        loadData("bookcraftCover");
+
+    if (cover && document.getElementById("coverPreview")) {
+
+        document.getElementById("coverTitle").value =
+            cover.title || "";
+
+        document.getElementById("coverAuthor").value =
+            cover.author || "";
+
+        document.getElementById("coverStyle").value =
+            cover.style || "magic";
+
+        document.getElementById("previewTitle").textContent =
+            cover.title || "YOUR BOOK";
+
+        document.getElementById("previewAuthor").textContent =
+            cover.author || "Your Name";
+
+        document.getElementById("coverPreview").className =
+            "generated-cover " + (cover.style || "magic");
+
+    }
+
 
     const editing =
-        getData(
-            "editing",
-            []
-        );
+        loadData("bookcraftEditing");
 
     if (
-        editing.length &&
-        editing.every(Boolean)
-    )
-        completed++;
+        editing !== null &&
+        editChecks.length
+    ) {
 
-    if (getData("cover", null))
-        completed++;
+        const count =
+            Math.round(
+                (editing / 100) *
+                editChecks.length
+            );
 
-    if (getData("published", false))
-        completed++;
+        editChecks.forEach(function (check, index) {
 
+            check.checked =
+                index < count;
 
-    const percentage =
-        Math.round(
-            (completed / total) * 100
-        );
+        });
 
-
-    const number =
-        document.getElementById(
-            "progressNumber"
-        );
-
-    const text =
-        document.getElementById(
-            "progressText"
-        );
-
-
-    if (number)
-        number.textContent =
-            percentage + "%";
-
-
-    if (text)
-        text.textContent =
-            percentage +
-            "% Complete";
-
-
-    const circle =
-        document.querySelector(
-            ".progress-circle"
-        );
-
-
-    if (circle) {
-
-        circle.style.background =
-            `conic-gradient(
-                var(--primary)
-                ${percentage * 3.6}deg,
-                rgba(115,87,255,.1)
-                0deg
-            )`;
+        updateEditing();
 
     }
 
 }
 
-
-updateProgress();
+loadStudioData();
+updateBookProgress();
 
 
 /* =========================================================
@@ -960,644 +788,75 @@ const quizQuestions = [
 
     {
         question:
-            "What usually comes first when creating a book?",
+            "What should usually come first when creating a story?",
 
-        options: [
-            "Designing the back cover",
-            "Developing an idea",
-            "Publishing the book",
-            "Printing hundreds of copies"
+        answers: [
+            "The publishing contract",
+            "A story idea",
+            "The final cover",
+            "The last chapter"
         ],
 
-        answer: 1,
+        correct: 1,
 
         explanation:
-            "A book normally begins with an idea that can then be developed."
+            "Most stories begin with an idea or question that sparks the writer's imagination."
     },
 
     {
         question:
-            "What gives a character motivation?",
+            "What makes a character more interesting?",
 
-        options: [
-            "Their goal",
-            "The font of the book",
-            "The page number",
-            "The cover colour"
+        answers: [
+            "Giving them no problems",
+            "Giving them a goal and obstacles",
+            "Making them perfect",
+            "Never describing them"
         ],
 
-        answer: 0,
+        correct: 1,
 
         explanation:
-            "A character's goals and desires help drive the story."
+            "Goals and obstacles create conflict and give characters something to overcome."
     },
 
     {
         question:
-            "What is the climax?",
+            "What is the setting of a story?",
 
-        options: [
-            "The title page",
-            "The biggest turning point or peak of the story",
+        answers: [
+            "The place and time where it happens",
+            "The book's price",
             "The author's name",
-            "The table of contents"
+            "The final sentence"
         ],
 
-        answer: 1,
+        correct: 0,
 
         explanation:
-            "The climax is usually the story's most intense or important turning point."
+            "Setting tells readers where and when the story takes place."
     },
 
     {
         question:
-            "Why do authors edit their first draft?",
+            "Which event is usually the most intense moment of a story?",
 
-        options: [
-            "To make it longer automatically",
-            "To improve the story and correct problems",
-            "To remove the title",
-            "To change every character"
+        answers: [
+            "The title",
+            "The introduction",
+            "The climax",
+            "The dedication"
         ],
 
-        answer: 1,
+        correct: 2,
 
         explanation:
-            "Editing helps improve clarity, structure, language and storytelling."
+            "The climax is usually the major turning point or most intense moment."
     },
 
     {
         question:
-            "What is one important job of a book cover?",
+            "What is a first draft?",
 
-        options: [
-            "Hide the story",
-            "Give readers an idea of the book",
-            "Replace the ending",
-            "Make every book look identical"
-        ],
-
-        answer: 1,
-
-        explanation:
-            "A cover gives readers an early impression of the book's subject and mood."
-    }
-
-];
-
-
-let currentQuestion = 0;
-let quizScore = 0;
-
-
-const quizOptions =
-    document.getElementById(
-        "quizOptions"
-    );
-
-
-if (quizOptions) {
-
-    loadQuestion();
-
-
-    quizOptions.addEventListener(
-        "click",
-        event => {
-
-            const button =
-                event.target.closest(
-                    "button"
-                );
-
-
-            if (!button) return;
-
-
-            answerQuestion(
-                Number(
-                    button.dataset.answer
-                )
-            );
-
-        }
-    );
-
-}
-
-
-function loadQuestion() {
-
-    const question =
-        quizQuestions[
-            currentQuestion
-        ];
-
-
-    document.getElementById(
-        "quizNumber"
-    ).textContent =
-        `QUESTION ${currentQuestion + 1} / ${quizQuestions.length}`;
-
-
-    document.getElementById(
-        "quizQuestion"
-    ).textContent =
-        question.question;
-
-
-    const progress =
-        document.getElementById(
-            "quizProgress"
-        );
-
-
-    progress.style.width =
-        `${((currentQuestion + 1) / quizQuestions.length) * 100}%`;
-
-
-    quizOptions.innerHTML =
-        question.options
-            .map(
-                (option,index) => `
-                    <button data-answer="${index}">
-                        ${escapeHTML(option)}
-                    </button>
-                `
-            )
-            .join("");
-
-
-    document.getElementById(
-        "quizFeedback"
-    ).textContent = "";
-
-
-    document.getElementById(
-        "nextQuestion"
-    ).classList.add("hidden");
-
-
-    document.getElementById(
-        "quizScore"
-    ).textContent =
-        quizScore;
-
-}
-
-
-function answerQuestion(answer) {
-
-    const question =
-        quizQuestions[
-            currentQuestion
-        ];
-
-
-    const buttons =
-        quizOptions.querySelectorAll(
-            "button"
-        );
-
-
-    buttons.forEach(
-        button => {
-
-            button.disabled = true;
-
-        }
-    );
-
-
-    buttons[
-        question.answer
-    ].classList.add(
-        "correct"
-    );
-
-
-    if (answer === question.answer) {
-
-        quizScore++;
-
-        document.getElementById(
-            "quizScore"
-        ).textContent =
-            quizScore;
-
-
-        document.getElementById(
-            "quizFeedback"
-        ).textContent =
-            "✓ Correct! " +
-            question.explanation;
-
-    } else {
-
-        buttons[
-            answer
-        ].classList.add(
-            "wrong"
-        );
-
-
-        document.getElementById(
-            "quizFeedback"
-        ).textContent =
-            "Not quite. " +
-            question.explanation;
-
-    }
-
-
-    document.getElementById(
-        "nextQuestion"
-    ).classList.remove(
-        "hidden"
-    );
-
-}
-
-
-const nextQuestion =
-    document.getElementById(
-        "nextQuestion"
-    );
-
-
-if (nextQuestion) {
-
-    nextQuestion.addEventListener(
-        "click",
-        () => {
-
-            currentQuestion++;
-
-
-            if (
-                currentQuestion >=
-                quizQuestions.length
-            ) {
-
-                showQuizFinal();
-
-            } else {
-
-                loadQuestion();
-
-            }
-
-        }
-    );
-
-}
-
-
-function showQuizFinal() {
-
-    document.getElementById(
-        "quizContent"
-    ).classList.add(
-        "hidden"
-    );
-
-
-    document.querySelector(
-        ".quiz-final"
-    ).classList.remove(
-        "hidden"
-    );
-
-
-    document.getElementById(
-        "finalScore"
-    ).textContent =
-        `${quizScore} / ${quizQuestions.length}`;
-
-
-    let message;
-
-
-    if (quizScore === 5) {
-
-        message =
-            "🏆 Outstanding! You're thinking like an author.";
-
-    } else if (quizScore >= 3) {
-
-        message =
-            "✨ Great job! Your author skills are growing.";
-
-    } else {
-
-        message =
-            "📖 Keep exploring — every writer is always learning.";
-
-    }
-
-
-    document.getElementById(
-        "finalMessage"
-    ).textContent =
-        message;
-
-}
-
-
-const restartQuiz =
-    document.getElementById(
-        "restartQuiz"
-    );
-
-
-if (restartQuiz) {
-
-    restartQuiz.addEventListener(
-        "click",
-        () => {
-
-            currentQuestion = 0;
-
-            quizScore = 0;
-
-
-            document.getElementById(
-                "quizContent"
-            ).classList.remove(
-                "hidden"
-            );
-
-
-            document.querySelector(
-                ".quiz-final"
-            ).classList.add(
-                "hidden"
-            );
-
-
-            loadQuestion();
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   BOOK PREVIEW
-   ========================================================= */
-
-if (
-    document.getElementById(
-        "finalTitle"
-    )
-) {
-
-    const title =
-        getData(
-            "bookTitle",
-            "YOUR BOOK"
-        );
-
-
-    const cover =
-        getData(
-            "cover",
-            null
-        );
-
-
-    const character =
-        getData(
-            "character",
-            null
-        );
-
-
-    const world =
-        getData(
-            "world",
-            null
-        );
-
-
-    const writing =
-        getData(
-            "writing",
-            ""
-        );
-
-
-    document.getElementById(
-        "finalTitle"
-    ).textContent =
-        cover
-            ? cover.title
-            : title || "YOUR BOOK";
-
-
-    document.getElementById(
-        "finalAuthor"
-    ).textContent =
-        cover
-            ? cover.author
-            : "Your Name";
-
-
-    document.getElementById(
-        "storyHeading"
-    ).textContent =
-        title || "Your Story";
-
-
-    document.getElementById(
-        "storyText"
-    ).textContent =
-        writing
-            ? writing.slice(0,300) +
-              (writing.length > 300
-                ? "..."
-                : "")
-            : "Your writing will appear here once you start writing in the Book Studio.";
-
-
-    document.getElementById(
-        "bookCharacter"
-    ).textContent =
-        character
-            ? character.name
-            : "Not created yet";
-
-
-    document.getElementById(
-        "bookWorld"
-    ).textContent =
-        world
-            ? world.place
-            : "Not created yet";
-
-
-    const words =
-        writing.trim()
-            ? writing.trim()
-                .split(/\s+/)
-                .length
-            : 0;
-
-
-    document.getElementById(
-        "bookWords"
-    ).textContent =
-        words;
-
-
-    const chapter =
-        document.getElementById(
-            "chapterText"
-        );
-
-
-    if (chapter) {
-
-        chapter.innerHTML =
-            writing
-                ? writing
-                    .split(/\n+/)
-                    .map(
-                        paragraph =>
-                            `<p>${escapeHTML(paragraph)}</p>`
-                    )
-                    .join("")
-                : `<p>Your first chapter is waiting to be written.</p>`;
-
-    }
-
-}
-
-
-/* =========================================================
-   TOAST
-   ========================================================= */
-
-function showToast(message) {
-
-    let toast =
-        document.getElementById(
-            "bookcraftToast"
-        );
-
-
-    if (!toast) {
-
-        toast =
-            document.createElement(
-                "div"
-            );
-
-        toast.id =
-            "bookcraftToast";
-
-
-        toast.style.position =
-            "fixed";
-
-        toast.style.bottom =
-            "25px";
-
-        toast.style.left =
-            "50%";
-
-        toast.style.transform =
-            "translateX(-50%) translateY(20px)";
-
-        toast.style.padding =
-            "12px 18px";
-
-        toast.style.background =
-            "#18162b";
-
-        toast.style.color =
-            "white";
-
-        toast.style.borderRadius =
-            "50px";
-
-        toast.style.fontSize =
-            "11px";
-
-        toast.style.fontWeight =
-            "700";
-
-        toast.style.zIndex =
-            "9999";
-
-        toast.style.opacity =
-            "0";
-
-        toast.style.transition =
-            ".3s";
-
-        document.body.appendChild(
-            toast
-        );
-
-    }
-
-
-    toast.textContent =
-        "✓ " + message;
-
-
-    requestAnimationFrame(() => {
-
-        toast.style.opacity =
-            "1";
-
-        toast.style.transform =
-            "translateX(-50%) translateY(0)";
-
-    });
-
-
-    setTimeout(() => {
-
-        toast.style.opacity =
-            "0";
-
-        toast.style.transform =
-            "translateX(-50%) translateY(20px)";
-
-    }, 2200);
-
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHTML(value) {
-
-    return String(value)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
+        answers: [
+            
